@@ -1,0 +1,61 @@
+positive_strong:
+  - anti-fraud
+  - fraud analyst
+  - risk analyst
+  - trust & safety
+  - sql
+  - clickhouse
+  - postgresql
+  - power bi
+  - data quality
+  - etl
+positive_medium:
+  - product analyst
+  - marketing analyst
+  - funnel
+  - retention
+  - ltv
+  - ab test
+  - amplitude
+  - mixpanel
+  - ga4
+negative_medium:
+  - 1c
+  - accounting
+  - manual reporting
+negative_strong:
+  - night shifts
+  - 12-hour shifts
+  - c1 required
+stop_words:
+  - sales
+  - cold calls
+  - operator
+  - no experience
+  - intern
+role_titles:
+  - fraud analyst
+  - risk analyst
+  - data analyst
+  - bi analyst
+  - product analyst
+metrics:
+  - gmv
+  - roi
+  - retention
+  - conversion rate
+tools:
+  - python
+  - pandas
+  - airflow
+  - dbt
+domains:
+  - anti-fraud
+  - risk
+  - product analytics
+reasons_map:
+  not_my_location: [location]
+  not_my_domain: [domains]
+  not_my_stack: [tools]
+  salary_not_ok: [salary]
+  duplicate_like: [dedup]
