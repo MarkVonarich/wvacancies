@@ -255,7 +255,7 @@ def run() -> None:
     db = DB(settings.database_path)
     scorer = Scorer("bot/triggers.yml")
     hh = HHClient(settings, db)
-    research = ResearchService(db, hh, scorer)
+    research = ResearchService(db, hh, scorer, settings)
 
     app = Application.builder().token(settings.bot_token).build()
     app.bot_data["db"] = db

@@ -14,6 +14,7 @@ class Settings:
     bot_token: str
     database_path: str = os.getenv("DATABASE_PATH", "bot.db")
     hh_base_url: str = os.getenv("HH_BASE_URL", "https://api.hh.ru")
+    min_score_to_queue: int = int(os.getenv("MIN_SCORE_TO_QUEUE", "58"))
 
 
 

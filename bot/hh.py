@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import re
-from difflib import SequenceMatcher
 from typing import Any
 
 import requests
@@ -16,9 +15,13 @@ class HHClient:
         self.settings = settings
         self.db = db
 
-    def fetch(self, text: str = "аналитик", per_page: int = 30) -> list[dict[str, Any]]:
+    def fetch(self, text: str = "аналитик", per_page: int = 20) -> list[dict[str, Any]]:
         url = f"{self.settings.hh_base_url}/vacancies"
-        r = requests.get(url, params={"text": text, "per_page": per_page, "page": 0}, timeout=20)
+        r = requests.get(
+            url,
+            params={"text": text, "per_page": per_page, "page": 0, "order_by": "publication_time"},
+            timeout=20,
+        )
         r.raise_for_status()
         items = r.json().get("items", [])
         result = []
@@ -30,13 +33,25 @@ class HHClient:
             result.append(self._normalize(full))
         return result
 
+    def fetch_many(self, queries: list[str]) -> list[dict[str, Any]]:
+        seen: set[str] = set()
+        out: list[dict[str, Any]] = []
+        for q in queries:
+            for row in self.fetch(text=q):
+                key = f"{row['source']}:{row['source_vacancy_id']}"
+                if key in seen:
+                    continue
+                seen.add(key)
+                out.append(row)
+        return out
+
     @staticmethod
     def _txt(val: str | None) -> str:
         return re.sub(r"<[^>]+>", " ", (val or "")).strip()
 
     def _cluster(self, employer_id: str | None, title: str, desc: str) -> str:
         base = f"{(employer_id or '').lower()}|{title.lower()}"
-        fp = hashlib.md5((base + '|' + desc[:500]).encode()).hexdigest()
+        fp = hashlib.md5((base + '|' + desc[:700]).encode()).hexdigest()
         return fp[:16]
 
     def _normalize(self, full: dict[str, Any]) -> dict[str, Any]:

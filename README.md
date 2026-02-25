@@ -9,6 +9,7 @@ Telegram-бот для подбора вакансий с обучением п�
 ```env
 BOT_TOKEN=...
 DATABASE_PATH=bot.db
+MIN_SCORE_TO_QUEUE=58
 ```
 
 2. Установите зависимости и запустите:

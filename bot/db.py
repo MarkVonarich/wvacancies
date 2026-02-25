@@ -242,6 +242,31 @@ class DB:
             ).fetchall()
             return [int(r[0]) for r in rows]
 
+
+    def is_blacklisted(self, tg_user_id: int, vacancy: Vacancy) -> bool:
+        text = f"{vacancy.title} {vacancy.description_text} {vacancy.skills_text}".lower()
+        with self.conn() as c:
+            rows = c.execute(
+                """
+                SELECT kind, value
+                FROM user_blacklist
+                WHERE tg_user_id=? AND (expires_at IS NULL OR expires_at > ?)
+                """,
+                (tg_user_id, datetime.now(UTC).isoformat()),
+            ).fetchall()
+
+        for row in rows:
+            kind = row["kind"]
+            value = (row["value"] or "").lower()
+            if kind == "keyword" and value and value in text:
+                return True
+            if kind == "company" and value and value in vacancy.employer_name.lower():
+                return True
+            if kind == "title" and value and value in vacancy.title.lower():
+                return True
+            if kind == "cluster" and value and value == (vacancy.cluster_id or "").lower():
+                return True
+        return False
     def apply_queue_scope(self, tg_user_id: int, vacancy_ids: list[int]) -> None:
         if not vacancy_ids:
             return

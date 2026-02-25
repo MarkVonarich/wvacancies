@@ -29,37 +29,59 @@ class Scorer:
 
     def score(self, vacancy: Vacancy, weights: dict[str, float]) -> ScoreResult:
         text = self._norm(" ".join([vacancy.title, vacancy.description_text, vacancy.skills_text, vacancy.employer_name]))
+        title = self._norm(vacancy.title)
         plus: list[str] = []
         minus: list[str] = []
-        raw = 50.0
+        raw = 45.0
 
         for token in self.config.get("stop_words", []):
             if self._contains(text, token):
                 return ScoreResult(0, [], [f"stop-word: {token}"])
 
+        role_hits = 0
+        for token in self.config.get("role_titles", []):
+            if self._contains(title, token):
+                raw += 18 * weights.get("positive", 1.0)
+                plus.append(f"role:{token}")
+                role_hits += 1
+
         for token in self.config.get("positive_strong", []):
             if self._contains(text, token):
-                raw += 10 * weights.get("positive", 1.0)
+                raw += 9 * weights.get("positive", 1.0)
                 plus.append(token)
 
         for token in self.config.get("positive_medium", []):
             if self._contains(text, token):
-                raw += 5 * weights.get("positive", 1.0)
+                raw += 4 * weights.get("positive", 1.0)
                 plus.append(token)
 
+        neg_hits = 0
         for token in self.config.get("negative_strong", []):
             if self._contains(text, token):
-                raw -= 12 * weights.get("negative", 1.0)
+                raw -= 14 * weights.get("negative", 1.0)
                 minus.append(token)
+                neg_hits += 1
 
         for token in self.config.get("negative_medium", []):
             if self._contains(text, token):
-                raw -= 6 * weights.get("negative", 1.0)
+                raw -= 7 * weights.get("negative", 1.0)
                 minus.append(token)
+                neg_hits += 1
+
+        if vacancy.salary_from is None and vacancy.salary_to is None:
+            raw -= 4
+            minus.append("salary_missing")
 
         if vacancy.area.lower() != "москва" and vacancy.remote_flag == 0:
             raw = 0
             minus.append("geo-filter")
+
+        if role_hits == 0:
+            raw -= 20
+            minus.append("no_target_role")
+
+        if neg_hits >= 2 and role_hits == 0:
+            raw -= 20
 
         return ScoreResult(max(0, min(100, int(raw))), plus[:3], minus[:2])
 
